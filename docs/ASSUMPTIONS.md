@@ -40,9 +40,15 @@ Each entry is a call made without asking. Fix any that are wrong.
 6. **Home page, "What we do":** a new first card, "Automated tools", carries your line "The only club with strong technical infrastructure and automated tools for new members to see and work with." Only the card title is mine.
 7. **Added an `exchange-site` dev-server entry** to `claude site trainer/.claude/launch.json` (port 5173) for previewing.
 
+## 2026-09-30
+
+1. **Pushed to https://github.com/ZOUKSH101/The-exchange-site** (public), as one initial commit on `main`.
+2. **Left out of the repo:** `brag-output/` (the launch videos, about 10 MB, not part of the site) and `.claude/` (local preview config). Both are in `.gitignore` and still on disk.
+3. **Commits are signed as "ZOUKSH"** with GitHub's private no-reply address, so your email is not published in the repo history.
+
 ## Still open (needs you)
 
 - Surnames and photos for Reem and Elsayed.
 - A real photo of Kareem (the current image is the comic poster).
-- Hosting, domain, and git (the folder is not a repository). `og:image` is a relative path until there is a domain.
+- Hosting and domain. `og:image` is a relative path until there is a domain.
 - Carried over: the tracking-table sign, approval of the lime gradient ramp, and whether to remove Tailwind.
