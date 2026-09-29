@@ -1,0 +1,94 @@
+/* CSS @import must precede all other rules, so the import block stays first.
+   Order matters: tokens define the custom properties that type and motion
+   consume, and Tailwind's preflight comes last so the base rules below can
+   override it in source order. */
+@import './styles/tokens.css';
+@import './styles/type.css';
+@import './styles/motion.css';
+@import 'tailwindcss';
+
+/* Base — declared AFTER the Tailwind import so preflight cannot win.
+   The ground has to be painted explicitly: relying on the UA's dark
+   color-scheme default leaves body transparent, which shows through as
+   "correct" black on this machine and as the wrong colour on another. */
+html {
+  background-color: var(--c-bg);
+  color-scheme: dark;
+  /* Horizontal overflow is never intentional here; a scrim or a translated
+     stagger item overshooting its box must not create a sideways scrollbar.
+
+     This MUST sit on html, not body. Per spec, overflow-x: hidden on one axis
+     forces a `visible` other axis to compute to `auto`, so putting it on body
+     makes BODY a scroll container: the document then stops scrolling on the
+     viewport, window.scrollY is pinned at 0, and every scroll-driven keyframe
+     in the build silently reads zero progress. On html the value propagates
+     to the viewport instead, and window scrolling is preserved. */
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  background-color: var(--c-bg);
+  color: var(--c-fg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* Resize hygiene (§13). The scroll engine adds this to <body> for the
+   duration of a resize and removes it 180ms after the last resize event.
+   Without it every transitioned property animates while the browser
+   reflows, so the nav visibly slides around as the window is dragged. */
+.block-transitions,
+.block-transitions *,
+.block-transitions *::before,
+.block-transitions *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* A visible, consistent focus ring is the one interactive affordance that
+   must never be left to the UA. */
+:focus-visible {
+  outline: 2px solid var(--c-lime);
+  outline-offset: 3px;
+}
+
+/* Skip link: off screen until focused, then sits above the nav (z 90).
+   <main> takes focus programmatically only, so it gets no ring. */
+.skip-link {
+  position: fixed;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 100;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--c-lime);
+  color: var(--c-bg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  translate: 0 calc(-100% - var(--space-md));
+}
+
+.skip-link:focus-visible {
+  translate: 0 0;
+  outline-color: var(--c-fg);
+}
+
+main {
+  /* Scroll choreography offsets content sideways (lit rows, drifting
+     backdrops). html's overflow-x does not stop a phone from widening its
+     layout viewport to fit that; clipping here does. */
+  overflow-x: clip;
+}
+
+main:focus {
+  outline: none;
+}

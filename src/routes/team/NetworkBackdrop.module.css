@@ -1,0 +1,132 @@
+/* ==========================================================================
+   NetworkBackdrop — choreography as custom properties (§1).
+   Edges draw first, then nodes arrive with an overshoot: the structure
+   resolves before the people in it do.
+   ========================================================================== */
+
+.backdrop {
+  --net-edge-duration: 0.9s;
+  --net-edge-stagger: 60ms;
+  --net-node-delay: 0.55s;
+  --net-node-stagger: 45ms;
+
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Same edge dissolve idea as the home chart, centred on the hub instead,
+     so the graph reads as depth behind the heading rather than a diagram. */
+  mask-image: radial-gradient(ellipse 60% 75% at 71% 48%, #000 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 75% at 71% 48%, #000 40%, transparent 80%);
+}
+
+.dot {
+  fill: rgb(var(--c-fg-rgb) / 0.07);
+}
+
+.edge {
+  stroke: rgb(var(--c-fg-rgb) / 0.2);
+  stroke-width: 1.25;
+  stroke-dasharray: 1;
+  /* Resting state is drawn; the animation runs FROM undrawn. If motion is
+     reduced and animations are killed, the graph is simply there. */
+  stroke-dashoffset: 0;
+  animation: net-draw var(--net-edge-duration) var(--ease-out-cubic) both;
+  animation-delay: calc(var(--n) * var(--net-edge-stagger));
+}
+
+/* The founder's line is dashed: connected to the club, no longer an officer. */
+.edgeDashed {
+  stroke: rgb(var(--c-lime-rgb) / 0.45);
+  stroke-dasharray: 0.018 0.012;
+  animation-name: net-fade;
+}
+
+.node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: net-pop var(--dur-enter) var(--ease-overshoot) both;
+  animation-delay: calc(var(--net-node-delay) + var(--n) * var(--net-node-stagger));
+}
+
+.core {
+  fill: rgb(var(--c-fg-rgb) / 0.75);
+}
+
+.halo {
+  fill: none;
+  stroke: rgb(var(--c-lime-rgb) / 0.3);
+  stroke-width: 1;
+}
+
+.hub .core,
+.officer .core {
+  fill: var(--c-lime);
+}
+
+.hub .halo {
+  stroke: rgb(var(--c-lime-rgb) / 0.45);
+}
+
+.founder .core {
+  fill: var(--c-bg);
+  stroke: var(--c-lime);
+  stroke-width: 2;
+}
+
+.founder .halo {
+  stroke-dasharray: 3 4;
+}
+
+@keyframes net-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes net-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes net-pop {
+  from {
+    opacity: 0;
+    scale: 0;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+:global(html.reduced-motion) .edge,
+:global(html.reduced-motion) .node {
+  animation: none;
+}
+
+/* Small screens. `xMidYMid slice` keeps the MIDDLE of the drawing, but the
+   graph lives on its right half, so a narrow header showed three stray nodes
+   and no hub. Here the svg keeps its own aspect ratio, is sized from the
+   header's height, and is shifted so the graph's centre (72% across the
+   drawing) sits in the middle of the screen. It is held to the top 68% so the
+   nodes do not sit behind the heading. The mask is expressed in the svg's own
+   box, so it stays centred on the hub either way. */
+@media (max-width: 734px) {
+  .backdrop {
+    inset: auto;
+    top: 0;
+    left: 50%;
+    width: auto;
+    height: 68%;
+    aspect-ratio: 1440 / 600;
+    translate: -72% 0;
+  }
+}

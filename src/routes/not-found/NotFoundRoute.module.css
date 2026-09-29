@@ -1,0 +1,20 @@
+.page {
+  background: var(--c-bg);
+  color: var(--c-fg);
+  /* The only content is the header, so it takes the screen. */
+  min-height: 80vh;
+  min-height: 80svh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page > header {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}

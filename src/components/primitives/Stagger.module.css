@@ -1,0 +1,28 @@
+.container {
+  /* Clipping fix for any scroller: an ancestor with overflow-hidden/auto
+     would clip the translateY(--staggered-translate-y) entry offset before
+     it settles. Padding the block-start by that same amount and cancelling
+     it with an equal negative margin gives the transform room without
+     moving the container's own box in normal (non-clipping) layout. */
+  padding-block-start: var(--staggered-translate-y);
+  margin-block-start: calc(-1 * var(--staggered-translate-y));
+}
+
+.item {
+  /* Resting state before JS attaches, and the permanent state if JS never
+     runs (see html.no-js override below) or the token contract fails. */
+  opacity: 0;
+  transform: translateY(var(--staggered-translate-y));
+}
+
+/* Both polarities styled deliberately, per the capability-class contract:
+   no-js and reduced-motion both mean "no animation will ever run", so both
+   must resolve to the visible resting state, not the pre-animation one.
+   :global(...) is required around each html-set class: this is a CSS
+   Module, so a bare ".no-js"/".reduced-motion" would get hashed into a
+   local name that never matches the real class on <html>. */
+html:global(.no-js) .item,
+html:global(.reduced-motion) .item {
+  opacity: 1;
+  transform: none;
+}

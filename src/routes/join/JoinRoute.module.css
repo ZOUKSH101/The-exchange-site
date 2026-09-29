@@ -1,0 +1,190 @@
+/* JoinRoute — layout and the channel-card ring. Tokens only. */
+
+.page {
+  background: var(--c-bg);
+  color: var(--c-fg);
+}
+
+.headerActions {
+  margin-top: var(--space-md);
+}
+
+.section {
+  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: var(--section-pad-block) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* -- Channels -------------------------------------------------------------- */
+
+.channels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+/* Registered so the ring can transition (§9 ring mask). */
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@property --ring-sweep {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+.channel {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  color: var(--c-body);
+  text-decoration: none;
+  transition: translate var(--dur-exit) var(--ease-exit);
+}
+
+/* §9 ring mask: a conic lime arc painted in the border box only. At rest the
+   arc has zero sweep; on hover it opens to a full ring. Entrance is slow,
+   exit ~3x faster (§6). */
+.channel::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--ring-angle),
+    var(--c-lime) 0 var(--ring-sweep),
+    transparent var(--ring-sweep)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  transition:
+    --ring-sweep var(--dur-exit) var(--ease-exit),
+    --ring-angle var(--dur-exit) var(--ease-exit);
+}
+
+.channel:hover,
+.channel:focus-visible {
+  translate: 0 -4px;
+  transition: translate var(--dur-enter) var(--ease-overshoot);
+}
+
+.channel:hover::before,
+.channel:focus-visible::before {
+  --ring-sweep: 360deg;
+  --ring-angle: 90deg;
+  transition:
+    --ring-sweep var(--dur-enter) var(--ease-out-cubic),
+    --ring-angle var(--dur-enter) var(--ease-out-cubic);
+}
+
+.channel:focus-visible {
+  outline-offset: 4px;
+}
+
+.glyph {
+  width: 28px;
+  height: 28px;
+  margin-bottom: var(--space-sm);
+}
+
+/* Scoped under .channel: module CSS loads before the global type classes. */
+.channel .channelName {
+  color: rgb(var(--c-fg-rgb) / 0.66);
+}
+
+.handle {
+  /* Handles and addresses are set in the condensed body face: in the display
+     face the email address could not fit a third of the grid unbroken. */
+  font-family: var(--font-body);
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--c-fg);
+  overflow-wrap: anywhere;
+}
+
+.arrow {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  color: var(--c-lime);
+  opacity: 0.4;
+  transition: opacity var(--dur-exit) var(--ease-exit);
+}
+
+.channel:hover .arrow,
+.channel:focus-visible .arrow {
+  opacity: 1;
+  transition: opacity var(--dur-enter) var(--ease-standard);
+}
+
+/* -- Offer ----------------------------------------------------------------- */
+
+.offer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.offerItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--c-hairline);
+}
+
+.offerItem .offerIndex {
+  color: var(--c-lime);
+}
+
+.offerItem .offerTitle {
+  color: var(--c-fg);
+}
+
+.offerTitle a {
+  color: inherit;
+  text-decoration-color: rgb(var(--c-lime-rgb) / 0.6);
+  text-underline-offset: 4px;
+}
+
+:global(html.reduced-motion) .channel,
+:global(html.reduced-motion) .channel::before,
+:global(html.reduced-motion) .arrow {
+  transition: none;
+}
+
+@media (max-width: 1068px) {
+  .offer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 734px) {
+  .channels {
+    grid-template-columns: 1fr;
+  }
+}

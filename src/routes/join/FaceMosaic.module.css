@@ -1,0 +1,81 @@
+/* FaceMosaic — choreography as custom properties (§1). */
+
+.mosaic {
+  --tile-in: 0.6s;
+  --tile-stagger: 18ms;
+  /* One full warm cycle per portrait. */
+  --warm-step: 2.4s;
+
+  position: absolute;
+  top: 0;
+  right: calc(var(--gutter) * -1);
+  width: min(1040px, 110%);
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 10px;
+  padding: 24px;
+  rotate: -6deg;
+  transform-origin: top right;
+  mask-image: radial-gradient(ellipse 70% 80% at 70% 30%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 70% 30%, #000 30%, transparent 75%);
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-hairline);
+  overflow: hidden;
+  animation: tile-in var(--tile-in) var(--ease-out-cubic) both;
+  animation-delay: calc(var(--i) * var(--tile-stagger));
+}
+
+.face {
+  border-color: transparent;
+  background: var(--c-surface);
+}
+
+.face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(0.7);
+  animation: warm calc(var(--faces) * var(--warm-step)) linear infinite;
+  animation-delay: calc(var(--f) * var(--warm-step));
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+
+/* Warm inside the first 9% of the cycle (one step of eleven), grey for the
+   rest, so at most one portrait is in colour at any moment. With more than
+   eleven faces the windows would start to overlap. */
+@keyframes warm {
+  0%,
+  9%,
+  100% {
+    filter: grayscale(1) brightness(0.7);
+  }
+  2%,
+  7% {
+    filter: grayscale(0) brightness(1);
+  }
+}
+
+:global(html.reduced-motion) .cell,
+:global(html.reduced-motion) .face img {
+  animation: none;
+}
+
+@media (max-width: 734px) {
+  .mosaic {
+    width: 190%;
+    right: -60%;
+  }
+}

@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+.DS_Store
+
+# Not part of the site: launch videos and local editor/preview config
+brag-output/
+.claude/

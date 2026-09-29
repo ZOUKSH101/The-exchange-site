@@ -1,0 +1,181 @@
+/* ============================================================================
+   LocalNav — §4, the flagship.
+
+   JS tweens exactly ONE scalar, --progress, from 0 to 1 as the hero scrolls
+   away. Every visual change below is derived from it in CSS: radius, max
+   width, padding, background alpha, outline alpha, shadow spread and blur.
+   JS never touches a layout property, so the morph stays interruptible,
+   retunable from a media query, and correct under any breakpoint without a
+   single extra line of script.
+   ========================================================================== */
+
+.localnav {
+  --progress: 0;
+
+  /* The scroll choreography, authored here and read by the component with
+     getComputedStyle. Timings live in CSS so a media query can retune the
+     morph at a breakpoint without touching a line of JS (§1).
+       t         document top
+       t + 18vh  the morph completes 18vh into the scroll, while the hero is
+                 still on screen — the nav should settle before the reader
+                 reaches content, not arrive late behind it. */
+  --localnav-morph-start: t;
+  --localnav-morph-end: t + 18vh;
+  /* Per-frame lerp. Lower than the 0.5 default: the nav is permanently on
+     screen, so trackpad jitter in it would never scroll out of view. */
+  --localnav-morph-ease: 0.18;
+
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  /* The bar sits FLUSH to the viewport edge at rest and lifts away from it as
+     it becomes a floating pill, so both axes of the outer padding have to
+     interpolate. Leaving the inline padding at a constant gutter insets the
+     bar before the morph has started, which reads as a pill that never
+     committed to being a bar. */
+  padding: calc(10px * var(--progress)) calc(var(--gutter) * var(--progress));
+  pointer-events: none;
+}
+
+.wrap {
+  pointer-events: auto;
+  width: 100%;
+  /* Full-bleed bar at 0, floating pill at 1. */
+  max-width: calc(var(--maxw) - 360px * var(--progress));
+  padding: 12px calc(18px + 10px * var(--progress));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  border-radius: calc(var(--radius-md) * var(--progress));
+  background-color: rgb(var(--c-bg-rgb) / calc(0.36 + 0.42 * var(--progress)));
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow:
+    0 0 0 1px rgb(var(--c-fg-rgb) / calc(0.06 + 0.06 * var(--progress))),
+    0 8px calc(28px * var(--progress)) rgb(0 0 0 / calc(0.55 * var(--progress)));
+
+  /* No transition: the value is driven per-frame by the scroll engine, which
+     already applies its own lerp. A transition on top would fight it. */
+  transition: none;
+}
+
+.home {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 0;
+  border-radius: 4px;
+}
+
+/* Set from the asset's real measured ratio (783x122 = 6.418), never forced
+   into a box of a different shape — squashing the mark has shipped once. */
+.lockup {
+  width: 154px;
+  height: 24px;
+  display: block;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 374px) {
+  .links {
+    gap: 0;
+  }
+}
+
+.link {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: rgb(var(--c-fg-rgb) / 0.66);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  transition: color var(--dur-medium) var(--ease-standard);
+}
+
+.link:hover {
+  color: var(--c-fg);
+}
+
+/* The active marker is a filled pill behind the label. It uses `scale` as an
+   independent property rather than a transform, so a future transform on the
+   same element cannot fight it for the one transform string (§13). */
+.link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background-color: rgb(var(--c-lime-rgb) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-lime-rgb) / 0.28);
+  opacity: 0;
+  scale: 0.86;
+  /* Exit is the fast path; arrival overshoots. */
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    scale var(--dur-exit) var(--ease-exit);
+}
+
+.link[aria-current='page'] {
+  color: var(--c-lime);
+}
+
+.link[aria-current='page']::before {
+  opacity: 1;
+  scale: 1;
+  transition:
+    opacity var(--dur-enter) var(--ease-overshoot),
+    scale var(--dur-enter) var(--ease-overshoot);
+}
+
+.linkLabel {
+  position: relative;
+}
+
+/* Under reduced motion the morph still resolves to its end state — the nav
+   must not be stuck mid-interpolation — but nothing animates on the way. */
+:global(html.reduced-motion) .wrap,
+:global(html.reduced-motion) .link,
+:global(html.reduced-motion) .link::before {
+  transition: none;
+}
+
+@media (max-width: 734px) {
+  .localnav {
+    /* Retuning the choreography at a breakpoint with zero JS involvement —
+       this is the entire reason the timings live in CSS. A short phone
+       viewport has less scroll before content arrives, so the morph
+       completes sooner. */
+    --localnav-morph-end: t + 12vh;
+  }
+
+  .wrap {
+    /* The pill inset costs too much width on a small screen; keep the bar
+       nearly full-bleed and let radius alone carry the morph. */
+    max-width: calc(var(--maxw) - 40px * var(--progress));
+  }
+
+  /* The <picture> swaps in the mark alone here (391x167), so four links fit. */
+  .lockup {
+    width: 47px;
+    height: 20px;
+  }
+
+  .link {
+    /* Flatter padding on small screens. At 8px/10px the active marker's box
+       came out 44x40 — with a 980px radius that renders as a circle, not a
+       pill, and reads as a blob around a four-letter word. Widening the
+       inline padding and trimming the block padding restores the pill ratio
+       while keeping the target comfortably above 44px wide. With four links
+       the inline padding is 10px; the marker is still well wider than tall. */
+    padding: 6px 10px;
+  }
+}

@@ -1,0 +1,159 @@
+/* ============================================================================
+   Footer — carries the shipped brand structure: a hairline, the lime
+   "STAY CONNECTED" label, the social glyphs at their shipped 22px, then the
+   mandatory disclaimer and the copyright.
+   ========================================================================== */
+
+.footer {
+  padding-block: var(--section-pad-block) 72px;
+  padding-inline: var(--gutter);
+  border-top: 1px solid var(--c-hairline);
+  /* Section wash (§9): the second stop sits at 50%, so the bottom half is
+     flat. The gradient only does work where the eye actually is. */
+  background-image: linear-gradient(var(--c-surface), var(--c-bg) 50%);
+}
+
+.inner {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  display: grid;
+  gap: 40px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 735px) {
+  .inner {
+    grid-template-columns: 1.4fr 0.8fr 1fr;
+    align-items: start;
+  }
+}
+
+.brand {
+  display: block;
+  line-height: 0;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+/* From the asset's real measured ratio (783x122 = 6.418). */
+.lockup {
+  width: 205px;
+  height: 32px;
+  display: block;
+}
+
+.contact {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.contactLink {
+  color: rgb(var(--c-fg-rgb) / 0.66);
+  text-decoration: none;
+  border-radius: 3px;
+  transition: color var(--dur-medium) var(--ease-standard);
+}
+
+.contactLink:hover {
+  color: var(--c-lime);
+}
+
+.connect {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.socials {
+  display: flex;
+  align-items: center;
+  /* The shipped emails set 16px between glyphs, but the emails have no 44px
+     touch targets. Each .social below is 44px wide pulled back to a 22px flow
+     box, so glyph centres must sit at least 44px apart or neighbouring
+     targets overlap and one silently steals clicks from the other. 22px of
+     visual gap is the smallest value that keeps the targets exactly adjacent. */
+  gap: 22px;
+}
+
+/* Hit area separated from the visual (§13): the glyph is 22px, the target is
+   44px, which is the minimum comfortable touch target. */
+.social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -11px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  /* scale as an independent property, so transform stays free (§13) */
+  scale: 1;
+  transition:
+    scale var(--dur-exit) var(--ease-exit),
+    background-color var(--dur-medium) var(--ease-standard);
+}
+
+.social:hover {
+  background-color: rgb(var(--c-lime-rgb) / 0.1);
+  scale: 1.06;
+  transition:
+    scale var(--dur-enter) var(--ease-overshoot),
+    background-color var(--dur-medium) var(--ease-standard);
+}
+
+.social:active {
+  scale: 0.96;
+}
+
+/* The club's own lime glyphs, shipped at 96x96 and displayed at 22px — the
+   same size the emails use. An icon package would be both a dependency and
+   an off-brand mark. */
+.socialGlyph {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.legal {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* The legal token (#5A5A5A) measures 3.04:1 on black and fails WCAG AA, and
+   this line is the mandatory disclaimer. The token itself is transcribed
+   verbatim from the design system and is not ours to change, so the text
+   uses the system's existing meta colour (#9A9A9A, 7.46:1) at the legal size
+   instead. Scoped under .legal on purpose: main.tsx imports App before
+   index.css, so this module lands EARLIER in the bundle than the global
+   .type-legal rule and would lose to it at equal specificity. */
+.legal .legalText {
+  color: var(--c-meta);
+}
+
+.bottom {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--c-divider);
+}
+
+:global(html.reduced-motion) .social,
+:global(html.reduced-motion) .contactLink {
+  transition: none;
+}

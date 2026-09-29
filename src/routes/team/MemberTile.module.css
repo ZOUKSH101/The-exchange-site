@@ -1,0 +1,177 @@
+/* ==========================================================================
+   MemberTile.module.css — the no-portrait tile.
+
+   This box is exactly what a real photo will occupy once portraits exist:
+   size, radius and overflow are owned here, not by the caller, so promoting
+   a member from monogram to photo (editing roster.ts's `photo` field only)
+   changes nothing about layout — the <img> just fills the same box the
+   monogram <span> filled.
+   ========================================================================== */
+
+.tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  /* NOT overflow: hidden. The ring badge below sits 6px outside the top-right
+     corner, and clipping here cut it into a crescent that read as a rendering
+     artifact — and it is the only thing distinguishing a head from a member.
+     Clipping lives on the inner .clip wrapper instead. */
+  isolation: isolate;
+  background: var(--c-surface);
+  border: 1px solid var(--c-hairline);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  flex: none;
+  /* No hover scale: the tile is aria-hidden and non-interactive, so scaling
+     it on hover advertised an affordance that does not exist. */
+}
+
+/* Carries the clipping the tile itself must not: photo, monogram and the
+   role overlay are cut to the rounded corner, the ring badge is not. */
+.clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  display: grid;
+  place-items: center;
+}
+
+.sm {
+  --tile-size: 72px;
+  width: var(--tile-size);
+}
+.md {
+  --tile-size: 104px;
+  width: var(--tile-size);
+}
+.lg {
+  --tile-size: 152px;
+  width: var(--tile-size);
+  border-radius: var(--radius-lg);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.monogram {
+  position: relative;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--c-lime);
+  /* Proportional to the tile, not a step of the type scale — a monogram is
+     a graphic mark standing in for a photo, not body/heading copy. */
+  font-size: calc(var(--tile-size) * 0.34);
+  line-height: 1;
+}
+
+/* -- §9 the conic bevel: a lighting model, not decoration ------------------
+   Ink theme only means one polarity of light — the origin stays fixed at
+   270deg rather than flipping to 90deg the way a light/dark theme pair
+   would, since this brand ships no light theme to flip against. Stops
+   concentrate the highlight in a narrow 64.8-115.2deg arc and leave the
+   208.8-331.2deg back half bare, the same structure a real lit sphere
+   would produce. Alpha is derived from --c-fg-rgb (white) rather than a
+   new hex, per the brief. mix-blend-mode lets it read as light falling on
+   whatever is underneath — monogram tint or a future photo — instead of a
+   flat tinted layer on top of it. */
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: conic-gradient(
+    from 270deg,
+    rgb(var(--c-fg-rgb) / 0.1) 0deg,
+    rgb(var(--c-fg-rgb) / 0.32) 64.8deg,
+    rgb(var(--c-fg-rgb) / 0.32) 115.2deg,
+    rgb(var(--c-fg-rgb) / 0.1) 180deg,
+    rgb(var(--c-fg-rgb) / 0) 208.8deg,
+    rgb(var(--c-fg-rgb) / 0) 331.2deg,
+    rgb(var(--c-fg-rgb) / 0.1) 360deg
+  );
+}
+
+/* -- §9 the ring mask: hierarchy, not decoration ---------------------------
+   Marks a tile as a head (department head / reporting lead) so a head and
+   a member never render as two identical peer cards. A radial-gradient
+   donut mask rather than a border/outline: it costs no layout (the tile's
+   own box, and therefore the grid it sits in, is untouched) and the
+   feather distance is the explicit --ring-r variable instead of an
+   implicit border-radius mismatch. */
+.ring::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgb(var(--c-lime-rgb) / 0.95);
+  --ring-r: 9px;
+  mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--ring-r) - 1px), #000 var(--ring-r));
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    transparent calc(var(--ring-r) - 1px),
+    #000 var(--ring-r)
+  );
+}
+
+/* -- role peek on hover: §6 enter/exit asymmetry + §7 visibility timing ---
+   Purely a progressive flourish — the role is already set as real text in
+   MemberCard, so this never gates access to information, only echoes it. */
+.roleOverlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  margin: 0;
+  padding: var(--space-xs);
+  background: linear-gradient(rgb(var(--c-bg-rgb) / 0), rgb(var(--c-bg-rgb) / 0.88) 55%);
+  text-align: center;
+  pointer-events: none;
+
+  /* OUT — fast, plain curve; visibility drops the instant opacity finishes
+     (step-end) so the overlay is never invisible-but-hit-testable. */
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    visibility var(--dur-exit) step-end;
+}
+/* Type comes from the global .type-legal class on the element; only the colour
+   is overridden. Scoped under .clip because this module loads before the
+   global type rules and would lose at equal specificity. */
+.clip .roleOverlay {
+  color: var(--c-fg);
+}
+.tile:hover .roleOverlay {
+  /* IN — the slower, overshooting one; visibility flips the instant the
+     transition starts (step-start) so it is legible for its whole run. */
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--dur-enter) var(--ease-overshoot),
+    visibility var(--dur-enter) step-start;
+}
+
+/* §13 — the scroll engine adds this to <body> during resize; every route
+   that owns a transition must say what it kills locally. */
+:global(body.block-transitions) .roleOverlay {
+  transition: none !important;
+}
+
+html:global(.reduced-motion) .roleOverlay {
+  transition: none;
+}

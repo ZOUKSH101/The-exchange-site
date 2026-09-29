@@ -1,0 +1,95 @@
+/* ==========================================================================
+   MarketBackdrop — choreography lives here as custom properties (§1).
+   ========================================================================== */
+
+.backdrop {
+  --market-draw-duration: 2.4s;
+  --market-draw-delay: 0.25s;
+  /* Each ghost trails the line in front of it, so the field assembles back
+     to front instead of all at once. */
+  --market-draw-stagger: 0.35s;
+
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Dissolve the field toward its edges and away from the lower-left, where
+     the copy sits, so the chart reads as depth behind the type rather than
+     as a graphic competing with it. */
+  mask-image: radial-gradient(ellipse 75% 70% at 68% 38%, #000 35%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 68% 38%, #000 35%, transparent 78%);
+}
+
+.grid line {
+  stroke: rgb(var(--c-fg-rgb) / 0.05);
+  stroke-width: 1;
+}
+
+.line {
+  fill: none;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+  stroke-dasharray: 1;
+  /* Resting state is fully drawn. The draw-in is an animation FROM 1, not a
+     base state of 1: if the animation never runs — reduced motion, which
+     kills animations globally — the chart is simply there, never invisible. */
+  stroke-dashoffset: 0;
+  animation: market-draw var(--market-draw-duration) var(--ease-out-cubic) both;
+}
+
+.main {
+  stroke: rgb(var(--c-lime-rgb) / 0.7);
+  stroke-width: 2.25;
+  animation-delay: calc(var(--market-draw-delay) + 2 * var(--market-draw-stagger));
+}
+
+.ghost {
+  stroke: rgb(var(--c-fg-rgb) / 0.12);
+  stroke-width: 1.25;
+}
+
+.ghostA {
+  animation-delay: calc(var(--market-draw-delay) + var(--market-draw-stagger));
+}
+
+.ghostB {
+  animation-delay: var(--market-draw-delay);
+}
+
+.area {
+  /* The fill arrives after the line has finished drawing: movement first,
+     then the surface resolves — the same ordering as the stagger contract. */
+  animation: market-fill var(--market-draw-duration) var(--ease-standard) both;
+  animation-delay: calc(var(--market-draw-delay) + 2 * var(--market-draw-stagger) + var(--market-draw-duration) * 0.6);
+}
+
+.areaStopTop {
+  stop-color: rgb(var(--c-lime-rgb) / 0.14);
+}
+
+.areaStopBottom {
+  stop-color: rgb(var(--c-lime-rgb) / 0);
+}
+
+@keyframes market-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes market-fill {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+:global(html.reduced-motion) .line,
+:global(html.reduced-motion) .area {
+  animation: none;
+}

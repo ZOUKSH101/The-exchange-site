@@ -1,0 +1,108 @@
+/* ==========================================================================
+   tokens.css — colour, spacing, radius and shadow scales.
+   Ink theme only: there is no light theme and no toggle, so these are the
+   only values that exist. Every primitive must consume these custom
+   properties — never a raw hex, px font-size, or ad-hoc shadow/gradient.
+   Type scale lives in type.css, motion scale lives in motion.css (see
+   src/index.css import order: tokens -> type -> motion -> tailwind).
+   ========================================================================== */
+
+:root {
+  /* -- Colour ------------------------------------------------------------
+     Adopted verbatim from the existing design system. Every colour is
+     provided BOTH as a hex token and as a space-separated "r g b" triplet,
+     so any consumer can do `rgb(var(--c-x-rgb) / <alpha>)` to get that
+     colour at an arbitrary alpha without hardcoding a second colour value
+     (needed for scrims, hover washes, focus rings, etc. — see motion.css
+     §8 scrim tokens, which reuse --c-lime-rgb). */
+  --c-bg: #000000;
+  --c-bg-rgb: 0 0 0;
+
+  --c-surface: #0b0b0b;
+  --c-surface-rgb: 11 11 11;
+
+  --c-hairline: #1f1f1f;
+  --c-hairline-rgb: 31 31 31;
+
+  --c-divider: #1a1a1a;
+  --c-divider-rgb: 26 26 26;
+
+  --c-body: #b8b8b8;
+  --c-body-rgb: 184 184 184;
+
+  --c-meta: #9a9a9a;
+  --c-meta-rgb: 154 154 154;
+
+  --c-legal: #5a5a5a;
+  --c-legal-rgb: 90 90 90;
+
+  --c-up: #23d18b;
+  --c-up-rgb: 35 209 139;
+
+  --c-down: #ff4d4d;
+  --c-down-rgb: 255 77 77;
+
+  /* The ONLY lime in the system. #CAFF00 is retired brand-wide and must
+     never be reintroduced anywhere, including as a "close enough" hover
+     shade — if a variant is needed, derive it from --c-lime-rgb at a
+     different alpha, don't pick a new hex. */
+  --c-lime: #d4ff00;
+  --c-lime-rgb: 212 255 0;
+
+  --c-fg: #ffffff; /* primary text on ink */
+  --c-fg-rgb: 255 255 255;
+
+  --c-on-accent: #000000; /* text/icons sitting on a lime fill */
+  --c-on-accent-rgb: 0 0 0;
+
+  /* -- Layout and spacing --------------------------------------------------
+     Resolved from the Apple reference rather than authored. The reference
+     carries layout as two variables — a fluid gutter and a max content
+     width — with section padding expressed against the viewport, so the
+     rhythm scales with the window instead of stepping at breakpoints the
+     way type does. Type steps discretely because optical correction is not
+     linear; space does not have that problem, so it interpolates. */
+  --gutter: clamp(22px, 5vw, 80px);
+  --maxw: 1024px;
+  /* Section rhythm. This applies to BOTH edges of every section, so the value
+     is doubled wherever two sections meet. At the reference's 12vh that put
+     186px of dead ground around content blocks as short as 79px, and the page
+     read as mostly empty.
+
+     The reference can afford 12vh because its sections are full-bleed media
+     and tall product tiles; ours are short editorial text blocks, so the same
+     ratio reads as void rather than as air. Tuned against the real rendered
+     content rather than inherited from the reference. */
+  --section-pad-block: clamp(38px, 5.2vh, 68px);
+
+  /* Internal spacing for primitive padding and gaps. The reference has no
+     published step scale, so these five are ours; they are deliberately
+     only used inside primitives, never for page rhythm (which uses the
+     three layout variables above). */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+
+  /* -- Radius --------------------------------------------------------------
+     Adopted verbatim. The flat-surface (radius: 0) rule is explicitly
+     lifted for this site — radius is a deliberate brand device here. */
+  --radius-sm: 18px; /* small cards */
+  --radius-md: 22px; /* tiles / panels */
+  --radius-lg: 28px; /* tiles / panels, larger */
+  --radius-pill: 980px; /* buttons, chips */
+
+  /* -- Shadow --------------------------------------------------------------
+     Shadows are explicitly allowed (also lifted) but the brief asks for a
+     small, restrained scale rather than a specific authored-elsewhere set,
+     so these are ours to define. Kept as plain low-opacity black lifts —
+     an all-black ground makes anything stronger read as a halo rather than
+     depth. --shadow-focus is the one interactive exception: it is the
+     ONLY focus treatment primitives may use, so :focus-visible never needs
+     an ad-hoc outline color. */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 12px 40px rgb(0 0 0 / 0.6);
+  --shadow-focus: 0 0 0 3px rgb(var(--c-lime-rgb) / 0.6);
+}

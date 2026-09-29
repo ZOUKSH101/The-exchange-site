@@ -1,0 +1,63 @@
+/* CandleBackdrop — choreography as custom properties (§1). Candles rise out
+   of their own centre line in reading order, so the chart assembles left to
+   right the way a session prints. */
+
+.backdrop {
+  --candle-duration: 0.6s;
+  --candle-stagger: 28ms;
+
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Dissolves toward the heading (bottom left) so the type sits on black. */
+  mask-image: linear-gradient(to top right, transparent 38%, #000 78%);
+  -webkit-mask-image: linear-gradient(to top right, transparent 38%, #000 78%);
+}
+
+.grid {
+  stroke: rgb(var(--c-fg-rgb) / 0.06);
+  stroke-width: 1;
+}
+
+.candle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: candle-rise var(--candle-duration) var(--ease-out-cubic) both;
+  animation-delay: calc(var(--i) * var(--candle-stagger));
+}
+
+.wick,
+.body {
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.body {
+  fill: none;
+}
+
+.up .wick,
+.up .body {
+  stroke: rgb(var(--c-lime-rgb) / 0.7);
+}
+
+.down .wick,
+.down .body {
+  stroke: rgb(var(--c-fg-rgb) / 0.28);
+}
+
+@keyframes candle-rise {
+  from {
+    opacity: 0;
+    scale: 1 0;
+  }
+  to {
+    opacity: 1;
+    scale: 1 1;
+  }
+}
+
+:global(html.reduced-motion) .candle {
+  animation: none;
+}

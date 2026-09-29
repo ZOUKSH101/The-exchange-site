@@ -1,0 +1,186 @@
+/* ==========================================================================
+   type.css — the type scale. PROVISIONAL pending user sign-off; kept in its
+   own file, separate from tokens.css, specifically so it's easy to swap
+   wholesale without touching colour/radius/shadow.
+
+   Two families (already @import'd in src/index.css — do not re-import):
+     display  Archivo Black    — ships one weight (400), which IS the black
+     body     Barlow Condensed — ships 300 and 400; every row below is 300
+
+   Sizes step at three discrete breakpoints (NO clamp()) using a mobile-
+   first cascade: the base rule is the <=734px value, then min-width
+   overrides raise it at 735px (covers the "<=1068px" tier) and again at
+   1069px. Line-heights are carried at full given precision — they are
+   literally leading-in-px / size-in-px, and rounding them reintroduces
+   the sub-pixel drift the table was built to eliminate.
+   ========================================================================== */
+
+:root {
+  --font-display: "Archivo Black", sans-serif;
+  --font-body: "Barlow Condensed", sans-serif;
+}
+
+/* -- Display / headings — Archivo Black, uppercase ---------------------- */
+
+.type-hero,
+.type-headline,
+.type-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--c-fg);
+  margin: 0;
+}
+
+.type-hero {
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.024em;
+}
+@media (min-width: 735px) {
+  .type-hero {
+    font-size: 72px;
+    line-height: 0.9444444444;
+    letter-spacing: -0.03em;
+  }
+}
+@media (min-width: 1069px) {
+  .type-hero {
+    font-size: 104px;
+    line-height: 0.9230769231;
+    letter-spacing: -0.034em;
+  }
+}
+
+.type-headline {
+  font-size: 34px;
+  line-height: 1.0294117647;
+  letter-spacing: -0.018em;
+}
+@media (min-width: 735px) {
+  .type-headline {
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.022em;
+  }
+}
+@media (min-width: 1069px) {
+  .type-headline {
+    font-size: 56px;
+    line-height: 0.9642857143;
+    letter-spacing: -0.026em;
+  }
+}
+
+.type-title {
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: -0.008em;
+}
+@media (min-width: 735px) {
+  .type-title {
+    font-size: 24px;
+    line-height: 1.0833333333;
+    letter-spacing: -0.011em;
+  }
+}
+@media (min-width: 1069px) {
+  .type-title {
+    font-size: 28px;
+    line-height: 1.0714285714;
+    letter-spacing: -0.014em;
+  }
+}
+
+/* -- Body — Barlow Condensed 300. Does NOT change per breakpoint -------- */
+
+.type-lede,
+.type-body,
+.type-body-sm,
+.type-meta,
+.type-legal {
+  font-family: var(--font-body);
+  font-weight: 300;
+  margin: 0;
+}
+
+.type-lede {
+  font-size: 19px;
+  line-height: 1.5789473684;
+  letter-spacing: 0.006em;
+  /* Resolved from the Apple reference rather than authored: the reference
+     derives secondary text as an ALPHA on the ink triplet rather than as a
+     separate colour token — `.lede{ color: rgb(var(--ink) / .72) }`. Same
+     construction here, which is why every colour ships a triplet. */
+  color: rgb(var(--c-fg-rgb) / 0.72);
+}
+
+.type-body {
+  font-size: 17px;
+  line-height: 1.5882352941;
+  letter-spacing: 0.008em;
+  color: var(--c-body);
+}
+
+.type-body-sm {
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--c-body);
+}
+
+.type-meta {
+  font-size: 13px;
+  line-height: 1.6153846154;
+  letter-spacing: 0.012em;
+  color: var(--c-meta);
+}
+
+.type-legal {
+  font-size: 11px;
+  line-height: 1.5454545455;
+  letter-spacing: 0.014em;
+  color: var(--c-legal);
+}
+
+/* -- Labels — Barlow Condensed 300, uppercase --------------------------- */
+
+.type-label-l,
+.type-label-m,
+.type-label-s {
+  font-family: var(--font-body);
+  font-weight: 300;
+  text-transform: uppercase;
+  margin: 0;
+  /* Also resolved from the reference: its eyebrow sits at
+     `rgb(var(--ink) / .66)`, and its quieter in-card kicker at .38.
+     .66 is the default here. The brand's own lime eyebrow is a shipped
+     device, so it stays available as an explicit modifier below rather
+     than as the default. */
+  color: rgb(var(--c-fg-rgb) / 0.66);
+}
+
+.type-label-l {
+  font-size: 13px;
+  line-height: 1.2307692308;
+  letter-spacing: 0.22em;
+}
+
+.type-label-m {
+  font-size: 11px;
+  line-height: 1.2727272727;
+  letter-spacing: 0.28em;
+}
+
+.type-label-s {
+  font-size: 10px;
+  line-height: 1.3;
+  letter-spacing: 0.32em;
+}
+
+/* The brand's shipped eyebrow treatment: lime, not white. Opt in per use —
+   the reference's white-at-.66 is the default because it governs anything
+   it actually addresses. */
+.type-label--lime {
+  color: var(--c-lime);
+}

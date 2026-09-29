@@ -1,0 +1,241 @@
+/* ==========================================================================
+   TeamRoute.module.css — layout only. Every colour, radius, space,
+   duration and easing below reaches into tokens.css / motion.css; this
+   file composes them, it never defines a new one.
+   ========================================================================== */
+
+.page {
+  background: var(--c-bg);
+  color: var(--c-fg);
+}
+
+.header {
+  position: relative;
+  overflow: clip; /* the wash drifts on scroll; clip it to the header box */
+  padding: var(--section-pad-block) var(--gutter);
+  /* Tall enough to carry the network graph, and no taller: the graph fills
+     the space, so it reads as imagery rather than empty ground. The heading
+     sits on the bottom edge, as on home. */
+  padding-top: clamp(96px, 14vh, 160px);
+  min-height: clamp(380px, 58vh, 580px);
+  display: flex;
+  align-items: flex-end;
+}
+
+.headerInner {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.lede {
+  max-width: 58ch;
+}
+
+/* §9 — a section wash as a lighting model: the SECOND stop sits at 50%
+   (matching the --scrim-mask-stop construction in motion.css) so the glow
+   falls off across the back half of the header instead of banding at a
+   hard edge. */
+.wash {
+  position: absolute;
+  /* Extends above the header by the drift distance, so the parallax never
+     pulls the imagery down far enough to expose a bare strip at the top. */
+  inset: calc(var(--team-wash-drift) * -1) 0 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 60% at 50% -10%, rgb(var(--c-lime-rgb) / 0.08) 0%, transparent 50%);
+
+  /* §1 — the only place this drift distance is authored. TeamRoute.tsx
+     reads it with getComputedStyle and drives it through the scroll
+     engine's per-frame lerp (§3, addKeyframe's default ease 0.5); it never
+     hardcodes a distance in JS, and warns instead of guessing if this is
+     ever removed. */
+  --team-wash-drift: 40px;
+}
+
+.section {
+  /* The gutter is padding INSIDE this box, so the box has to be wider than
+     --maxw by two gutters for its content to share the header's left edge.
+     At plain --maxw the content was double-inset and sat 72px right of the
+     h1 at 1440px. */
+  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: var(--section-pad-block) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* No extra margin: the section's own flex gap already spaces the rule from
+   the card above. A second margin here stacked with the section padding into
+   ~190px of empty ground between the founder and leadership. */
+.divider {
+  margin: 0;
+}
+
+/* -- Founder --------------------------------------------------------------
+   A single-member block, visually set apart from the sitting officers
+   below rather than distinguished only by its role text: no elevation and
+   a quiet hairline. */
+.founderSurface {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+
+/* -- Leadership ------------------------------------------------------------ */
+
+.leadershipGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* -- Departments ------------------------------------------------------------
+   §5 — member grids use the Stagger primitive (see memberGrid below); the
+   outer list of department cards is a separate grid and uses the §13
+   CSS-only index-driven stagger instead, so the two motions read as
+   distinct rather than the same effect twice. */
+
+.departments {
+  display: grid;
+  /* Two columns, not auto-fit. At desktop width auto-fit made three, which
+     stranded a department alone on a row; two columns keep an even count
+     (six, as of 2026-09-16) in complete rows. */
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 735px) {
+  .departments {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* §4 — --clip-progress: 1 is an inset rounded panel, 0 is full-bleed. The
+   inset and the corner radius both read the same scalar, so they can never
+   drift out of step. Defaults to 0 (open): without JS the stage is simply a
+   full-width band. */
+.deptStage {
+  --dept-clip-start: t - 100vh;
+  --dept-clip-end: t - 35vh;
+  --dept-clip-ease: 0.5;
+  --clip-progress: 0;
+
+  /* Section wash with its second stop at 50% (§9). */
+  background-image: linear-gradient(var(--c-surface), var(--c-bg) 50%);
+  clip-path: inset(
+    0 calc(var(--clip-progress) * 6.25vw) 0 calc(var(--clip-progress) * 6.25vw)
+      round calc(var(--clip-progress) * var(--radius-lg))
+  );
+}
+
+.deptCardWrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  scale: 0.94;
+  transition:
+    opacity var(--dur-enter) var(--ease-overshoot) calc(var(--i) * 50ms),
+    scale var(--dur-enter) var(--ease-overshoot) calc(var(--i) * 50ms);
+}
+.departments.revealed .deptCardWrap {
+  opacity: 1;
+  scale: 1;
+}
+
+.deptCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  height: 100%;
+}
+
+/* The department's selling point, between its name and its people: a lead
+   in primary white, then the work itself in body grey. Held to a measure so
+   the lines stay readable in a wide card. */
+.pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  max-width: 52ch;
+}
+
+/* Scoped under .pitch for the same reason as MemberCard's .name: the global
+   .type-body colour would otherwise win at equal specificity. */
+.pitch .pitchLead {
+  color: var(--c-fg);
+}
+
+/* Pointer spotlight: a soft lime light under the cursor, positioned by --mx /
+   --my from TeamRoute.tsx. Mouse devices only (html.no-touch): on touch there
+   is no hover to end it, and a light stuck where a finger last was reads as a
+   rendering fault. Arrives at the medium duration, leaves at the fast one. */
+.deptCardWrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    280px circle at var(--mx, 50%) var(--my, 50%),
+    rgb(var(--c-lime-rgb) / 0.09),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-exit) var(--ease-exit);
+}
+
+:global(html.no-touch) .deptCardWrap::after {
+  display: block;
+}
+
+.deptCardWrap:hover::after {
+  opacity: 1;
+  transition: opacity var(--dur-medium) var(--ease-out-cubic);
+}
+
+.memberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+  /* A member reports INTO the head above — indented and rail-marked rather
+     than rendered as an identical peer card, so the hierarchy is visible
+     in layout, not just in copy. */
+  padding-inline-start: var(--space-md);
+  border-inline-start: 1px solid var(--c-divider);
+}
+
+/* -- Motion hygiene ---------------------------------------------------------
+   §13 — the scroll engine adds body.block-transitions during resize; every
+   route that owns a transition says what it kills locally rather than
+   relying on a global blanket rule. */
+:global(body.block-transitions) .deptCardWrap,
+:global(body.block-transitions) .deptCardWrap::after,
+:global(body.block-transitions) .wash {
+  transition: none !important;
+}
+
+html:global(.reduced-motion) .deptCardWrap {
+  transition: none;
+  opacity: 1;
+  scale: 1;
+}
+
+/* Defensive backstop matching Stagger's own convention: if this ever
+   renders before JS attaches (or JS never runs), the resting state is
+   visible, not stuck at opacity: 0. */
+html:global(.no-js) .deptCardWrap {
+  opacity: 1;
+  scale: 1;
+  transition: none;
+}

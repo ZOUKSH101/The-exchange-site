@@ -1,0 +1,87 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@300;400&display=block" rel="stylesheet">
+<style>
+ body{background:#000;color:#fff;font-family:monospace;padding:20px}
+ pre{white-space:pre-wrap;font-size:12px}
+ .probe{position:absolute;visibility:hidden;white-space:pre;left:-9999px;top:0}
+</style></head>
+<body>
+<div id="stage"></div>
+<pre id="out">measuring…</pre>
+<script>
+async function run(){
+  await document.fonts.load('400 100px "Archivo Black"');
+  await document.fonts.load('300 100px "Barlow Condensed"');
+  await document.fonts.load('400 100px "Barlow Condensed"');
+  await document.fonts.ready;
+
+  const stage = document.getElementById('stage');
+  function probe(styles, text){
+    const d = document.createElement('div');
+    d.className = 'probe';
+    Object.assign(d.style, styles);
+    d.textContent = text;
+    stage.appendChild(d);
+    const r = d.getBoundingClientRect();
+    const w = r.width, h = r.height;
+    d.remove();
+    return {w, h};
+  }
+  // cap height / x-height via canvas TextMetrics
+  const c = document.createElement('canvas').getContext('2d');
+  function vmetrics(font){
+    c.font = font;
+    const m = c.measureText('H');
+    const mx = c.measureText('x');
+    const size = parseFloat(font.match(/([\d.]+)px/)[1]);
+    return {
+      capRatio: +( (m.actualBoundingBoxAscent) / size ).toFixed(4),
+      xRatio:   +( (mx.actualBoundingBoxAscent) / size ).toFixed(4),
+      ascent:   +( c.measureText('Hg').fontBoundingBoxAscent / size ).toFixed(4),
+      descent:  +( c.measureText('Hg').fontBoundingBoxDescent / size ).toFixed(4)
+    };
+  }
+
+  const ALPHA_U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const ALPHA_L = 'abcdefghijklmnopqrstuvwxyz';
+  const WORD_U  = 'THE EXCHANGE';
+  const SENT    = 'We learn how markets price risk by reading them';
+
+  const faces = [
+    {name:'Archivo Black',  css:'"Archivo Black", sans-serif', weight:400, label:'ArchivoBlack-900'},
+    {name:'Barlow Condensed 300', css:'"Barlow Condensed", sans-serif', weight:300, label:'BarlowCond-300'},
+    {name:'Barlow Condensed 400', css:'"Barlow Condensed", sans-serif', weight:400, label:'BarlowCond-400'},
+    {name:'SF-ish reference (Helvetica)', css:'Helvetica, Arial, sans-serif', weight:400, label:'Helvetica-ref'}
+  ];
+
+  const out = {};
+  for (const f of faces){
+    const font = f.weight + ' 100px ' + f.css.split(',')[0];
+    const vm = vmetrics(font);
+    // advance width per 1em, uppercase alphabet + the wordmark + a sentence
+    const base = {fontFamily:f.css, fontWeight:f.weight, fontSize:'100px', letterSpacing:'0'};
+    const au = probe(base, ALPHA_U).w / 100 / ALPHA_U.length;   // avg em advance, uppercase
+    const al = probe(base, ALPHA_L).w / 100 / ALPHA_L.length;   // avg em advance, lowercase
+    const wu = probe(base, WORD_U).w / 100;                     // em width of "THE EXCHANGE"
+    const st = probe(base, SENT).w / 100;
+    out[f.label] = {
+      capHeightRatio: vm.capRatio, xHeightRatio: vm.xRatio,
+      fontAscent: vm.ascent, fontDescent: vm.descent,
+      avgUpperAdvanceEm: +au.toFixed(4),
+      avgLowerAdvanceEm: +al.toFixed(4),
+      wordmarkWidthEm:   +wu.toFixed(4),
+      sentenceWidthEm:   +st.toFixed(4)
+    };
+  }
+  // relative width index vs Helvetica
+  const ref = out['Helvetica-ref'].avgUpperAdvanceEm;
+  for (const k in out){ out[k].widthIndexVsHelvetica = +(out[k].avgUpperAdvanceEm/ref).toFixed(3); }
+
+  document.getElementById('out').textContent = JSON.stringify(out, null, 2);
+  window.__METRICS = out;
+}
+run();
+</script>
+</body></html>

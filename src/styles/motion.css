@@ -1,0 +1,94 @@
+/* ==========================================================================
+   motion.css — the full choreography as data. JS (see Stagger.tsx) reads
+   these with getComputedStyle and must never hardcode a timing/easing of
+   its own; if a value here changes, motion changes everywhere with no code
+   edits. Also owns the capability-class contract's motion half: index.html
+   sets html.reduced-motion / html.no-reduced-motion before first paint, and
+   this file is where that class actually does something.
+   ========================================================================== */
+
+:root {
+  /* -- Easings -------------------------------------------------------------
+     Adopted verbatim, measured from the reference implementation. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.6, 1); /* the workhorse */
+  --ease-nav: cubic-bezier(0.25, 0.1, 0.3, 1);
+  --ease-localnav: cubic-bezier(0.28, 0.11, 0.32, 1);
+  --ease-decel: cubic-bezier(0, 0, 0.5, 1);
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-overshoot: cubic-bezier(0.3, 2, 0.5, 1);
+  --ease-overshoot-strong: cubic-bezier(0.34, 2.16, 0.64, 1);
+  --ease-exit: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+
+  /* -- Durations -------------------------------------------------------------
+     Exits are 2-3x faster than entrances by design — leaving is instant,
+     arriving is felt. Do not average these into one "transition-duration". */
+  --dur-exit: 0.15s;
+  --dur-medium: 0.24s;
+  --dur-enter: 0.5s;
+
+  /* -- StaggeredFadeIn (§5) --------------------------------------------------
+     Four tokens, read together as a contract by Stagger.tsx: the translate
+     duration MUST be shorter than the opacity duration (motion settles
+     into place before the fade finishes, rather than a chase). Durations
+     here are unitless seconds (not "0.9s") because JS reads them with
+     parseFloat and multiplies by 1000 for the Web Animations API — a unit
+     suffix would just have to be stripped back out. */
+  --staggered-delay: 0.15;
+  --staggered-opacity-duration: 0.9;
+  --staggered-translate-y: 30px;
+  --staggered-translate-y-duration: 0.7;
+
+  /* -- Scrim (§8) --------------------------------------------------------
+     --scrim-tint is a space-separated triplet (matching --c-*-rgb in
+     tokens.css) so it can be composited at --scrim-tint-alpha via
+     rgb(var(--scrim-tint) / var(--scrim-tint-alpha)) instead of a second
+     hardcoded colour. Tint is pure black (matches --c-bg-rgb) since the
+     ground is already black — the scrim is doing blur/saturate work, not
+     introducing a new hue. */
+  --scrim-blur: 20px;
+  --scrim-mask-angle: 180deg;
+  --scrim-mask-stop: 60%;
+  --scrim-saturate: 1.8;
+  --scrim-tint: 0 0 0;
+  --scrim-tint-alpha: 0.55;
+
+  /* -- Scroll-lead budget --------------------------------------------------
+     Tiered lead-in distances for a scroll-driven sequence, expressed as
+     vh so JS reads them instead of hardcoding scroll-position math.
+     Ordered by how early they fire relative to the pinned moment "t":
+       download      t - 200vh   heaviest asset fetch starts earliest
+       will-change   t - 150vh   compositor layers promoted ahead of motion
+       media-load    t - 100vh   video/img decode kicked off
+       play          t -  85vh   playback / animation actually starts
+       release       t + 50vh   past t, when the pin/lock is released
+     --lead-release is expressed as an offset PAST play, not an absolute
+     lead, since it's the only one of the five that happens after t. */
+  --lead-download: 200vh;
+  --lead-will-change: 150vh;
+  --lead-media-load: 100vh;
+  --lead-play: 85vh;
+  --lead-release-offset: 50vh;
+}
+
+/* -- Reduced motion: a real neutralisation, not a fast-forward ------------
+   A near-zero duration (the common ".01ms" trick) still runs a transform/
+   opacity program the OS told us the user doesn't want to see, it just
+   runs it imperceptibly fast — that's a fast-forward, not an absence.
+   Instead: collapse every transition/animation to nothing so elements sit
+   at their resting CSS state with no computed keyframe ever applied, and
+   drop scroll-driven pinning tricks entirely. Stagger.tsx additionally
+   gates ITSELF: under html.reduced-motion it never builds a WAAPI timeline
+   in the first place, so this block is a backstop, not the only guard. */
+html.reduced-motion,
+html.reduced-motion * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* Equal-specificity counterpart so the "motion is on" path is an explicit
+   rule too, not just "whatever reduced-motion didn't override" — per the
+   capability-class contract, both polarities are styled deliberately. */
+html.no-reduced-motion {
+  scroll-behavior: smooth;
+}

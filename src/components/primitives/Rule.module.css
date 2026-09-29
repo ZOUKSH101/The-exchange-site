@@ -1,0 +1,18 @@
+.rule {
+  display: block;
+  border: 0;
+  margin: 0;
+  background: var(--c-lime);
+  /* No blur/opacity variants: this is the brand's signature bar and its
+     dimensions below are shipped-brand fixed values, not a scale step. */
+}
+
+.full {
+  width: 100%;
+  height: 4px;
+}
+
+.stub {
+  width: 76px;
+  height: 4px;
+}

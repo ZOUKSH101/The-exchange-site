@@ -1,0 +1,15 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+/* Scoped under .card: this module loads before the global type rules, and a
+   bare .name would lose the colour to .type-label-l at equal specificity.
+   Labels default to white at .66; a person's name is primary text. */
+.card .name {
+  margin: 0;
+  color: var(--c-fg);
+  overflow-wrap: anywhere;
+}

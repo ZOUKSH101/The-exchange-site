@@ -1,0 +1,31 @@
+.surface {
+  background: var(--c-surface);
+  padding: var(--space-lg);
+}
+
+.radiusSm {
+  border-radius: var(--radius-sm);
+}
+.radiusMd {
+  border-radius: var(--radius-md);
+}
+.radiusLg {
+  border-radius: var(--radius-lg);
+}
+
+.hairline {
+  border: 1px solid var(--c-hairline);
+}
+
+.elevationNone {
+  box-shadow: none;
+}
+.elevationSm {
+  box-shadow: var(--shadow-sm);
+}
+.elevationMd {
+  box-shadow: var(--shadow-md);
+}
+.elevationLg {
+  box-shadow: var(--shadow-lg);
+}

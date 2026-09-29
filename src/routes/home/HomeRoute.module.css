@@ -1,0 +1,455 @@
+/* ==========================================================================
+   HomeRoute.module.css — local chrome only. Every colour/radius/shadow/
+   duration/easing below is a var(--...) from tokens.css or motion.css;
+   the ONE exception is the hero word gradient ramp, which the brief
+   mandates as an exact literal (see .gradientWord).
+   ========================================================================== */
+
+.page {
+  background: var(--c-bg);
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  position: relative;
+}
+
+/* -- Hero ----------------------------------------------------------------- */
+
+.hero {
+  --home-hero-parallax-distance: 120px;
+  --home-hero-parallax-ease: 0.5;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* 100vh first as a fallback: svh is iOS 15.4+, and without this the whole
+     declaration is dropped on older WebKit and the hero collapses to content
+     height. Browsers that understand svh take the second and get the correct
+     behaviour under a collapsing mobile toolbar. */
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  /* Copy sits at the BOTTOM of the hero, as in the reference (place-items:
+     end start). Top-aligning it inside a 100svh box left 423px of empty
+     ground below the lede on a 375x812 phone — over half the screen — because
+     the copy block is short and the box is a full viewport tall. Bottom
+     alignment puts the lit background ABOVE the type, where it reads as
+     atmosphere, rather than below it, where it reads as a hole. */
+  align-items: flex-end;
+  padding: var(--gutter);
+  /* Only needs to clear the fixed nav now; the bottom edge sets the
+     composition, so this no longer positions the copy. */
+  padding-top: clamp(96px, 14vh, 160px);
+  padding-bottom: clamp(48px, 9vh, 104px);
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  /* A lighting model, not decoration: a faint lime glow (from the ONE lime
+     token, at low alpha via its rgb triplet) fading into flat ground, plus
+     a directional wash. No hex outside the tokens ever appears here. */
+  background:
+    radial-gradient(120% 90% at 22% 12%, rgb(var(--c-lime-rgb) / 0.14) 0%, transparent 55%),
+    linear-gradient(160deg, var(--c-surface), var(--c-bg) 60%);
+  transform: translate3d(0, var(--home-hero-parallax, 0px), 0) scale(1.08);
+  will-change: transform;
+}
+
+/* §8 — mask the backdrop-filter itself rather than stacking a flat
+   overlay. The copy sits at the BOTTOM of the hero, so the mask runs
+   bottom-to-top (0deg): fully frosted behind the type, dissolving to nothing
+   by the upper half, where the market chart is left sharp. */
+.heroScrim {
+  --scrim-mask-angle: 0deg;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: rgb(var(--scrim-tint) / var(--scrim-tint-alpha));
+  backdrop-filter: blur(var(--scrim-blur)) saturate(var(--scrim-saturate));
+  -webkit-backdrop-filter: blur(var(--scrim-blur)) saturate(var(--scrim-saturate));
+  mask-image: linear-gradient(var(--scrim-mask-angle), #000 0%, #000 18%, transparent var(--scrim-mask-stop));
+  -webkit-mask-image: linear-gradient(
+    var(--scrim-mask-angle),
+    #000 0%,
+    #000 18%,
+    transparent var(--scrim-mask-stop)
+  );
+}
+
+/* Deliverable for design QA (§8): add this literal global class in
+   devtools to see exactly what the mask covers, with the blur/tint
+   swapped out for a plain black/white readout of the mask shape. */
+.heroScrim:global(.scrim-mask-debug) {
+  background: linear-gradient(var(--scrim-mask-angle), #fff 0%, #fff 18%, #000 var(--scrim-mask-stop));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* The hero is a flex row; a flex item shrinks to its content, so the wrap has
+   to be told to take the row or its max-width centring does nothing. */
+.heroWrap {
+  width: 100%;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  /* No cap here: the two children below carry their OWN measure, each
+     re-derived for the face it actually renders in (Archivo Black vs
+     Barlow Condensed have very different ch widths -- see docs/
+     TYPE-DERIVATION.md). A single shared ch value on the parent was the
+     bug: it was sized for the headline's wide display face and starved
+     the much-narrower body face of the eyebrow/lede down to ~110px. */
+  max-width: none;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-md);
+  /* Barlow Condensed labelL at +0.22em tracking: verified in-browser at
+     1463px viewport (see PR notes) -- 46ch renders the full eyebrow on a
+     single line without ballooning past a sane editorial measure. */
+  max-width: 46ch;
+}
+
+.heroTitle {
+  margin: 0;
+  /* ch here resolves against Archivo Black AT THE HERO SIZE, not against
+     the inherited body font -- verified to hold the "THE" / "EXCHANGE"
+     break at all three type-hero breakpoints (44 / 72 / 104px), since
+     letter-spacing and ch both scale in em and keep the same ratio. */
+  max-width: 8ch;
+}
+
+/* §9 — the ONE approved text gradient, exactly as specified. Built from
+   the brand lime only (one hue axis, varying lightness/chroma) -- do not
+   introduce a second ramp anywhere else in this route. */
+.gradientWord {
+  display: inline-block;
+  background-image: linear-gradient(104deg, #8fad00 0%, #d4ff00 34%, #eaff7f 58%, #d4ff00 82%, #a8cc00 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.lede {
+  margin-top: var(--space-md);
+  /* Barlow Condensed's width index is 0.635 of the SF-proxy this "34ch"
+     was implicitly borrowed from (docs/TYPE-DERIVATION.md); re-derived as
+     34 / 0.635 ~= 53.5, then checked in-browser and rounded to a value
+     that lands the lede at a comfortable 3-4 line paragraph rather than a
+     narrow four-words-per-line ribbon. */
+  max-width: 56ch;
+}
+
+/* -- Mission ---------------------------------------------------------------
+   §9 section wash: second stop pinned at 50% so the bottom half of the
+   section is flat -- the gradient only does work near the top, where the
+   eyebrow/copy actually sit. */
+.mission {
+  position: relative;
+  overflow: hidden;
+  padding-block: var(--section-pad-block);
+  padding-inline: var(--gutter);
+  background: linear-gradient(180deg, var(--c-surface), var(--c-bg) 50%);
+}
+
+.missionBody {
+  margin-top: var(--space-md);
+  /* Audited alongside the hero bug: this one is fine as shipped. It sits
+     inside .wrap (max 1024px, not full-bleed like the hero), and 62ch of
+     Barlow Condensed lede resolves to ~521px, wrapping the mission
+     sentence to ~59 characters/line across 3 lines -- inside the
+     comfortable 45-65 char range. Verified in-browser; left unchanged. */
+  max-width: 62ch;
+}
+
+/* §11 — the lazily-loaded watermark. Sits mostly off the right edge, very
+   low opacity: a brand mark, not an illustration. */
+.missionMark {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--gutter) * -1);
+  transform: translateY(-50%);
+  width: min(50vw, 420px);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.missionMark img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* -- What we do ------------------------------------------------------------ */
+
+.whatWeDo {
+  padding-block: var(--section-pad-block);
+  padding-inline: var(--gutter);
+}
+
+.sectionHead {
+  /* This was a leftover `max-width: 62ch` that never bound: it sits on
+     the Rule primitive, whose own module.css fixes width at the brand's
+     shipped 76px stub dimension (Rule.module.css .stub) regardless of any
+     max-width applied alongside it -- confirmed in-browser (computed
+     max-width resolved, computed width stayed 76px). Not the same class
+     of bug as the ch/font-inheritance issue elsewhere in this file, just
+     dead CSS; replaced with the spacing it was presumably meant to add. */
+  margin-top: var(--space-md);
+}
+
+/* §9 — edge fade only on the side that actually has overflow. --fade-left
+   / --fade-right are toggled between "#000" (opaque -> masked fully off)
+   and "transparent" (fade visible) by useRail's scroll listener. */
+.railWrap {
+  --fade-w: 56px;
+  margin-top: var(--space-xl);
+  mask-image: linear-gradient(
+    90deg,
+    var(--fade-left, #000) 0,
+    #000 var(--fade-w),
+    #000 calc(100% - var(--fade-w)),
+    var(--fade-right, transparent) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    var(--fade-left, #000) 0,
+    #000 var(--fade-w),
+    #000 calc(100% - var(--fade-w)),
+    var(--fade-right, transparent) 100%
+  );
+}
+
+.rail {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: 0 0 min(78vw, 320px);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cardMarker {
+  color: var(--c-lime);
+}
+
+.cardBody {
+  margin: 0;
+}
+
+/* §13 — dotnav: hit area separated from the visual, and `scale` used
+   independently of `transform` so a future transform on the same element
+   never has to fight this one for the property. */
+.dotnav {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
+
+.dot {
+  display: block;
+  position: relative;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  width: 8px;
+  height: 8px;
+  /* 8px visual, 24x24 hit target via padding rather than a larger visual. */
+  padding: 8px;
+  box-sizing: content-box;
+}
+.dot::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: var(--radius-pill);
+  background: rgb(var(--c-fg-rgb) / 0.32);
+  scale: 0.7;
+  transition:
+    background-color var(--dur-medium) linear,
+    scale var(--dur-medium) var(--ease-standard);
+}
+.dot[aria-current="true"]::before {
+  background: var(--c-lime);
+  scale: 1;
+}
+
+/* -- Who it's for ----------------------------------------------------------- */
+
+.whoFor {
+  padding-block: var(--section-pad-block);
+  padding-inline: var(--gutter);
+  border-top: 1px solid var(--c-hairline);
+}
+
+.whoForActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.whoForBody {
+  margin-top: var(--space-sm);
+  /* Audited alongside the hero bug: also fine as shipped. This is a short
+     two-sentence line, not a paragraph -- 48ch of Barlow Condensed body
+     resolves to ~361px and sets it as a deliberate two-line statement
+     (~36 characters/line), which reads as an intentional short measure
+     rather than a broken wrap. Verified in-browser; left unchanged. */
+  max-width: 48ch;
+}
+
+/* -- Team teaser -------------------------------------------------------------
+   §13 whole-card link: an absolutely positioned aria-hidden tabindex="-1"
+   <a> covers the tile as the click target; the REAL focusable CTA sits in
+   the content below it. No nested interactives, one stop in the tab order. */
+
+.teamTeaser {
+  padding-block: 0 var(--section-pad-block);
+  padding-inline: var(--gutter);
+}
+
+.teamTile {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.teamTileLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.teamCta {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--c-fg);
+  text-decoration: none;
+}
+.teamCta:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* Face stack. Tiles overlap at rest and fan out while the tile is hovered or
+   focused: arrival on the overshoot curve, return on the fast exit curve (§6).
+   `translate` is used so it composes with nothing else on the element (§13). */
+.faces {
+  --face-size: 48px;
+  --face-overlap: -14px;
+  --face-spread: 8px;
+  --face-stagger: 30ms;
+  display: flex;
+  padding-inline-start: calc(-1 * var(--face-overlap));
+}
+
+.face {
+  position: relative;
+  width: var(--face-size);
+  height: var(--face-size);
+  margin-inline-start: var(--face-overlap);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--c-bg);
+  background: var(--c-surface);
+  overflow: hidden;
+  flex: none;
+  transition: translate var(--dur-exit) var(--ease-exit);
+}
+
+.face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teamTile:hover .face,
+.teamTile:focus-within .face {
+  translate: calc(var(--i) * var(--face-spread)) 0;
+  transition: translate var(--dur-enter) var(--ease-overshoot);
+  transition-delay: calc(var(--i) * var(--face-stagger));
+}
+
+.teamTile .teamCount {
+  margin: 0;
+  margin-inline-end: auto;
+}
+
+html:global(.reduced-motion) .face {
+  transition: none;
+}
+
+/* §6/§7 — the arrow only exists on hover/focus. Entrance is the slower,
+   overshooting curve (springs are for arrivals); exit is the fast plain
+   ease-in, ~3x quicker, matching --dur-exit vs --dur-enter. visibility is
+   paired with opacity at the SAME duration each direction, step-start on
+   the way in (present immediately, then fades/slides), step-end on the
+   way out (stays hit-testable/announced until the fade actually finishes). */
+.teamArrow {
+  opacity: 0;
+  visibility: hidden;
+  scale: 0.8;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit),
+    scale var(--dur-exit) var(--ease-exit),
+    visibility var(--dur-exit) step-end;
+}
+.teamTile:hover .teamArrow,
+.teamTile:focus-within .teamArrow {
+  opacity: 1;
+  visibility: visible;
+  scale: 1;
+  transform: translateX(0);
+  transition:
+    opacity var(--dur-enter) var(--ease-overshoot),
+    transform var(--dur-enter) var(--ease-overshoot),
+    scale var(--dur-enter) var(--ease-overshoot),
+    visibility var(--dur-enter) step-start;
+}
+
+html:global(.reduced-motion) .teamArrow {
+  transition: none;
+}
+
+/* -- §13 kill transitions during resize ------------------------------------
+   scroll.ts adds body.block-transitions while the window is being resized;
+   this route defines what that suppresses for everything it owns, so a
+   resize never plays the hover/entrance transitions above as a side effect
+   of layout changing size. */
+body:global(.block-transitions) .page,
+body:global(.block-transitions) .page * {
+  transition: none !important;
+  animation: none !important;
+}

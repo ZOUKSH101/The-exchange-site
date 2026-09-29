@@ -1,0 +1,116 @@
+/* ==========================================================================
+   TickerTape — choreography as custom properties (§1). Type comes from the
+   global .type-hero / .type-label-l classes on each lane; this file only
+   overrides colour and layout.
+   ========================================================================== */
+
+.tape {
+  /* The two lanes run at different speeds and in opposite directions, so the
+     band reads as depth rather than as one sliding sheet. */
+  --tape-duration-display: 80s;
+  --tape-duration-label: 55s;
+
+  position: relative;
+  overflow: hidden;
+  padding-block: var(--space-lg);
+  border-block: 1px solid var(--c-hairline);
+  display: grid;
+  gap: var(--space-sm);
+  /* Edge fades on BOTH sides are correct here, unlike on a static list: a
+     marquee genuinely overflows in both directions at all times. */
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.lane {
+  display: flex;
+  width: max-content;
+}
+
+/* The animation sits on each COPY, not on the lane. Animating the lane
+   promoted the whole doubled strip to one compositor layer — measured at
+   11,217px wide with the display lane at hero size. At a phone's DPR of 3
+   that is ~33,600 device pixels against a 16,384px GPU texture limit, and
+   Chromium paints an over-limit layer as blank tiles; it visibly corrupted
+   even at DPR 1. One copy per layer, at headline size, keeps each well
+   inside the limit on any screen. */
+.track {
+  /* translate as an independent property, so transform stays free (§13). */
+  animation: tape-scroll var(--tape-duration-display) linear infinite;
+}
+
+.label .track {
+  animation-duration: var(--tape-duration-label);
+  animation-direction: reverse;
+}
+
+/* Scoped under .tape: this module loads before the global type rules and
+   would lose margin/colour to .type-headline at equal specificity. */
+.tape .display,
+.tape .label {
+  margin: 0;
+  color: transparent;
+}
+
+.lane > .track {
+  display: flex;
+  flex: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.tape .display .symbol {
+  /* Outlined rather than filled: at hero size a solid white tape would
+     out-shout the headline it sits under. */
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--c-fg-rgb) / 0.22);
+}
+
+.tape .display .accent .symbol {
+  color: var(--c-lime);
+  -webkit-text-stroke: 0;
+}
+
+.tape .display .marker {
+  color: rgb(var(--c-lime-rgb) / 0.5);
+  padding-inline: 0.35em;
+}
+
+.tape .label .symbol {
+  color: rgb(var(--c-fg-rgb) / 0.66);
+}
+
+.tape .label .accent .symbol {
+  color: var(--c-lime);
+}
+
+.tape .label .marker {
+  color: rgb(var(--c-lime-rgb) / 0.5);
+  padding-inline: 1.2em;
+}
+
+/* Two identical copies side by side, each moving by exactly its own width in
+   lockstep: copy two ends where copy one began, so the loop has no seam. */
+@keyframes tape-scroll {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -100% 0;
+  }
+}
+
+.tape[data-paused] .track {
+  animation-play-state: paused;
+}
+
+:global(html.reduced-motion) .track {
+  animation: none;
+}

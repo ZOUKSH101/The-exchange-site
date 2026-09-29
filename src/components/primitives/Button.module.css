@@ -1,0 +1,67 @@
+/* Component-local chrome only — typography comes from the global
+   .type-label-l class applied alongside these in Button.tsx, so a pill CTA
+   uses the exact same label metrics as everything else, not a bespoke size. */
+
+.button {
+  display: inline-flex;
+  gap: var(--space-xs);
+  min-height: 44px;
+  text-decoration: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  /* No spacing scale was supplied (see tokens.css gap note); vertical/
+     horizontal padding is authored, not sourced. */
+  padding: var(--space-xs) var(--space-md);
+  /* `scale`, not `transform` — transform is left free for callers/other
+     motion (e.g. Stagger) to use without fighting this component's own
+     press feedback. */
+  scale: 1;
+  transition:
+    scale var(--dur-exit) var(--ease-standard),
+    background-color var(--dur-medium) var(--ease-standard),
+    border-color var(--dur-medium) var(--ease-standard);
+}
+
+.button:active {
+  scale: 0.96;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Compound selectors (.button.solid, not just .solid) are deliberate: the
+   colour here must always beat the .type-label-l colour it's combined with
+   in Button.tsx regardless of CSS injection order, so specificity does the
+   winning rather than import order. */
+.button.solid {
+  background: var(--c-lime);
+  color: var(--c-on-accent);
+}
+
+.button.ghost {
+  background: transparent;
+  color: var(--c-fg);
+  border: 1px solid var(--c-hairline);
+}
+
+.ghost:hover {
+  border-color: var(--c-lime);
+}
+
+/* Real neutralisation, not a fast one: under reduced-motion the press
+   feedback simply doesn't run rather than running near-instantly.
+   :global(...) around .reduced-motion is required here — this is a CSS
+   Module, which would otherwise hash "reduced-motion" into a local class
+   that never matches the real class index.html puts on <html>. */
+html:global(.reduced-motion) .button {
+  transition: none;
+}
+
+.button.ghost:hover {
+  border-color: rgb(var(--c-lime-rgb) / 0.5);
+}
